@@ -1,0 +1,109 @@
+import pygame
+import random
+
+# Dimensões da tela
+WIDTH = 640
+HEIGHT = 480
+
+# Cores
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+
+# Tamanho do bloco da cobrinha
+BLOCK_SIZE = 20
+
+# Velocidade inicial da cobrinha
+INITIAL_SPEED = 10
+
+class SnakeGame:
+    def __init__(self):
+        pygame.init()
+        self.clock = pygame.time.Clock()
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Snake Game")
+        self.font = pygame.font.SysFont(None, 48)
+        self.snake = Snake()
+        self.apple = Apple()
+        self.speed = INITIAL_SPEED
+
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit_game()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    self.snake.change_direction("UP")
+                elif event.key == pygame.K_DOWN:
+                    self.snake.change_direction("DOWN")
+                elif event.key == pygame.K_LEFT:
+                    self.snake.change_direction("LEFT")
+                elif event.key == pygame.K_RIGHT:
+                    self.snake.change_direction("RIGHT")
+
+    def update(self):
+        self.snake.move()
+        if self.snake.check_collision(self.apple):
+            self.snake.grow()
+            self.apple.generate()
+
+        if self.snake.check_self_collision() or self.snake.check_boundary_collision():
+            self.game_over()
+
+    def render(self):
+        self.screen.fill(BLACK)
+        self.snake.draw(self.screen)
+        self.apple.draw(self.screen)
+        pygame.display.flip()
+
+    def game_over(self):
+        game_over_text = self.font.render("Game Over", True, RED)
+        self.screen.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2))
+        pygame.display.flip()
+        pygame.time.wait(2000)
+        self.quit_game()
+
+    def quit_game(self):
+        pygame.quit()
+        quit()
+
+    def run(self):
+        while True:
+            self.handle_events()
+            self.update()
+            self.render()
+            self.clock.tick(self.speed)
+
+class Snake:
+    def __init__(self):
+        self.direction = "RIGHT"
+        self.body = [(WIDTH // 2, HEIGHT // 2)]
+        self.length = 1
+
+    def change_direction(self, direction):
+        if (direction == "UP" and self.direction != "DOWN") or \
+           (direction == "DOWN" and self.direction != "UP") or \
+           (direction == "LEFT" and self.direction != "RIGHT") or \
+           (direction == "RIGHT" and self.direction != "LEFT"):
+            self.direction = direction
+
+    def move(self):
+        head = self.body[0]
+        x, y = head
+        if self.direction == "UP":
+            y -= BLOCK_SIZE
+        elif self.direction == "DOWN":
+            y += BLOCK_SIZE
+        elif self.direction == "LEFT":
+            x -= BLOCK_SIZE
+        elif self.direction == "RIGHT":
+            x += BLOCK_SIZE
+        self.body.insert(0, (x, y))
+        if len(self.body) > self.length:
+            self.body.pop()
+
+    def draw(self, screen):
+        for segment in self.body:
+            pygame.draw.rect(screen, GREEN, (segment[0], segment[1], BLOCK_SIZE, BLOCK_SIZE))
+
+    def
